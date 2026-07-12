@@ -1,11 +1,19 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSession } from '@/core/auth/jwt';
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    const session = await getSession();
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (session.role !== 'Admin' && session.role !== 'Asset Manager') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    
     const { id } = await context.params;
     const body = await request.json();
-    const { status, managerId } = body;
+    const { status } = body;
+    const managerId = session.userId;
 
     if (!status) {
       return NextResponse.json({ error: 'Status is required', status: 400 }, { status: 400 });
@@ -37,16 +45,22 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       });
       try {
         const { logActivity } = await import('@/lib/activity');
-        await logActivity(managerId || 'system', 'Maintenance Approved', 'Asset', currentRequest.assetId, 'Asset moved to Under Maintenance');
+        await logActivity(managerId, 'Maintenance Approved', 'Asset', currentRequest.assetId, 'Asset moved to Under Maintenance');
       } catch(e) {}
     } else if (status === 'Resolved') {
+      // Check if it has an active allocation
+      const activeAlloc = await prisma.allocation.findFirst({
+        where: { assetId: currentRequest.assetId, status: 'Allocated' }
+      });
+      const nextStatus = activeAlloc ? 'Allocated' : 'Available';
+      
       await prisma.asset.update({
         where: { id: currentRequest.assetId },
-        data: { status: 'Available' }
+        data: { status: nextStatus }
       });
       try {
         const { logActivity } = await import('@/lib/activity');
-        await logActivity(managerId || 'system', 'Maintenance Resolved', 'Asset', currentRequest.assetId, 'Asset is now Available');
+        await logActivity(managerId, 'Maintenance Resolved', 'Asset', currentRequest.assetId, `Asset is now ${nextStatus}`);
       } catch(e) {}
     }
 

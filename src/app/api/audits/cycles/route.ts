@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSession } from '@/core/auth/jwt';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const session = await getSession();
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const cycles = await prisma.auditCycle.findMany({
       include: {
         auditors: { select: { id: true, name: true, email: true } },
@@ -19,6 +22,12 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const session = await getSession();
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (session.role !== 'Admin' && session.role !== 'Asset Manager') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const body = await request.json();
     const { name, startDate, endDate, scopeType, scopeValue, auditorIds } = body;
 
@@ -31,11 +40,7 @@ export async function POST(request: Request) {
     if (scopeType === 'Location') {
       assetsInScope = await prisma.asset.findMany({ where: { location: scopeValue, status: { notIn: ['Retired', 'Disposed'] } } });
     } else if (scopeType === 'Department') {
-      // Assuming asset -> category -> department relation isn't direct, or maybe assets belong to departments.
-      // Wait, Asset model only has categoryId. Let's just mock location scoping or assume category scoping if needed.
-      // In this hackathon context, if scopeType == 'Department', we'll just fetch all assets for now, or match on some field.
-      // We don't have departmentId on asset. So we'll fallback to location or just all available for demo.
-      assetsInScope = await prisma.asset.findMany({ where: { status: { notIn: ['Retired', 'Disposed'] } } });
+      assetsInScope = await prisma.asset.findMany({ where: { departmentId: scopeValue, status: { notIn: ['Retired', 'Disposed'] } } });
     }
 
     const newCycle = await prisma.auditCycle.create({

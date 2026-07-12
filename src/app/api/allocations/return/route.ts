@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSession } from '@/core/auth/jwt';
 
 export async function POST(request: Request) {
   try {
+    const session = await getSession();
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (session.role !== 'Admin' && session.role !== 'Asset Manager') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { allocationId, checkInNotes } = await request.json();
 
     const allocation = await prisma.allocation.findUnique({
@@ -27,6 +34,11 @@ export async function POST(request: Request) {
         }
       })
     ]);
+
+    try {
+      const { logActivity } = await import('@/lib/activity');
+      await logActivity(session.userId, 'Asset Returned', 'Asset', allocation.assetId, `Asset returned with notes: ${checkInNotes || 'Good'}`);
+    } catch(e) {}
 
     return NextResponse.json({ data: returnAllocation, status: 200 }, { status: 200 });
 

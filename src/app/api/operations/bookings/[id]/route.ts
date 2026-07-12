@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSession } from '@/core/auth/jwt';
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
@@ -13,6 +14,12 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     const booking = await prisma.booking.findUnique({ where: { id } });
     if (!booking) {
       return NextResponse.json({ error: 'Booking not found', status: 404 }, { status: 404 });
+    }
+    
+    const session = await getSession();
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (booking.userId !== session.userId && session.role !== 'Admin' && session.role !== 'Asset Manager') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     if (booking.status !== 'Upcoming') {
       return NextResponse.json({ error: 'Only upcoming bookings can be cancelled', status: 400 }, { status: 400 });

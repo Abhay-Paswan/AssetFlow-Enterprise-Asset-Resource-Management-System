@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSession } from '@/core/auth/jwt';
 
 export async function POST(request: Request) {
   try {
-    const { assetId, toUserId } = await request.json();
+    const session = await getSession();
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const { assetId } = await request.json();
+    const toUserId = session.userId;
 
     const asset = await prisma.asset.findUnique({
       where: { id: assetId },
@@ -29,6 +34,11 @@ export async function POST(request: Request) {
         status: 'Requested'
       }
     });
+
+    try {
+      const { logActivity } = await import('@/lib/activity');
+      await logActivity(session.userId, 'Transfer Requested', 'Asset', assetId, `Transfer requested from ${fromUserId}`);
+    } catch(e) {}
 
     return NextResponse.json({ data: transferRequest, status: 201 }, { status: 201 });
   } catch (error: any) {

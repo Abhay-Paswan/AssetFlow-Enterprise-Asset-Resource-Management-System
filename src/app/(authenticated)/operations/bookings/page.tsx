@@ -37,7 +37,6 @@ export default function BookingsPage() {
           if(Array.isArray(data)) setBookings(data);
       })
       .catch(console.error);
-      .catch(console.error);
   };
 
   const handleCancel = async (id: string) => {
@@ -64,18 +63,6 @@ export default function BookingsPage() {
     e.preventDefault();
     setError('');
     
-    // In a real app we'd get userId from session (e.g. JWT or NextAuth context). 
-    // Since we don't have the auth context here, we will just use a hardcoded id for now, 
-    // or we can fetch a user to use. Let's fetch a random user or fallback.
-    let mockUserId = '123';
-    try {
-        const usersRes = await fetch('/api/organization/users');
-        const users = await usersRes.json();
-        if(users && users.length > 0) {
-            mockUserId = users[0].id;
-        }
-    } catch(e) {}
-    
     const startDateTime = new Date(`${formData.date}T${formData.startTime}`);
     const endDateTime = new Date(`${formData.date}T${formData.endTime}`);
     
@@ -85,7 +72,6 @@ export default function BookingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           assetId: formData.assetId,
-          userId: mockUserId, // To replace with real user session
           startTime: startDateTime.toISOString(),
           endTime: endDateTime.toISOString(),
           purpose: formData.purpose

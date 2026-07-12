@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSession } from '@/core/auth/jwt';
 
 export async function POST(request: Request) {
   try {
+    const session = await getSession();
+    if (!session || session.role !== 'Admin') {
+      return NextResponse.json({ error: 'Unauthorized or Forbidden' }, { status: 403 });
+    }
+
     const { name, headId, parentId, status } = await request.json();
 
     if (!name) {

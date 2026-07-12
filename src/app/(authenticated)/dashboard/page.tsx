@@ -53,13 +53,15 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title="Assets Available" value={data?.kpis?.assetsAvailable || 0} icon={<Box />} color="bg-emerald-100 text-emerald-700" />
         <StatCard title="Assets Allocated" value={data?.kpis?.assetsAllocated || 0} icon={<ArrowRight />} color="bg-blue-100 text-blue-700" />
         <StatCard title="Maintenance Today" value={data?.kpis?.maintenanceToday || 0} icon={<Wrench />} color="bg-amber-100 text-amber-700" />
         <StatCard title="Active Bookings" value={data?.kpis?.activeBookings || 0} icon={<Calendar />} color="bg-indigo-100 text-indigo-700" />
         <StatCard title="Pending Transfers" value={data?.kpis?.pendingTransfers || 0} icon={<Repeat />} color="bg-purple-100 text-purple-700" />
         <StatCard title="Upcoming Returns" value={data?.kpis?.upcomingReturns || 0} icon={<BellRing />} color="bg-slate-100 text-slate-700" />
+        <StatCard title="Pending Approvals" value={data?.kpis?.pendingMaintenanceApprovals || 0} icon={<Activity />} color="bg-orange-100 text-orange-700" />
+        <StatCard title="Audit Discrepancies" value={data?.kpis?.openAuditDiscrepancies || 0} icon={<AlertCircle />} color="bg-red-100 text-red-700" />
       </div>
     </div>
   );

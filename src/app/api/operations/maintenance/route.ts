@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSession } from '@/core/auth/jwt';
 
 export async function GET(request: Request) {
   try {
@@ -29,10 +30,14 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { assetId, userId, issue, priority, photoUrl } = body;
+    const session = await getSession();
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    if (!assetId || !userId || !issue || !priority) {
+    const body = await request.json();
+    const { assetId, issue, priority, photoUrl } = body;
+    const userId = session.userId;
+
+    if (!assetId || !issue || !priority) {
       return NextResponse.json({ error: 'Missing required fields', status: 400 }, { status: 400 });
     }
 

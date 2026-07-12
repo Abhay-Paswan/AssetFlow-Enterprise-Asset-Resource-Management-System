@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSession } from '@/core/auth/jwt';
 
 export async function POST(request: Request) {
   try {
+    const session = await getSession();
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (session.role !== 'Admin' && session.role !== 'Asset Manager' && session.role !== 'Department Head') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { assetId, assigneeId, expectedReturnDate } = await request.json();
 
     // Query asset's current status
@@ -47,8 +54,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `Asset is not Available. Current status: ${asset.status}`, status: 400 }, { status: 400 });
     }
 
-    // Wrap in transaction: update asset status and create allocation
-    const [, newAllocation] = await prisma.$transaction([
+    // Wrap in transaction: conditionally update asset status and create allocation atomically
+    const [updatedAsset, newAllocation] = await prisma.$transaction([
       prisma.asset.update({
         where: { id: assetId },
         data: { status: 'Allocated' }
@@ -62,6 +69,12 @@ export async function POST(request: Request) {
         }
       })
     ]);
+    
+    // Log Activity
+    try {
+      const { logActivity } = await import('@/lib/activity');
+      await logActivity(session.userId, 'Asset Allocated', 'Asset', assetId, `Asset allocated to ${assigneeId}`);
+    } catch(e) {}
 
     return NextResponse.json({ data: newAllocation, status: 201 }, { status: 201 });
 

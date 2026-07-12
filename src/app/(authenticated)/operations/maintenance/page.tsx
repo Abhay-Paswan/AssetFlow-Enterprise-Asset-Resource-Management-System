@@ -41,23 +41,12 @@ export default function MaintenancePage() {
     e.preventDefault();
     setError('');
     
-    // In a real app we'd get userId from session
-    let mockUserId = '123';
-    try {
-        const usersRes = await fetch('/api/organization/users');
-        const users = await usersRes.json();
-        if(users && users.length > 0) {
-            mockUserId = users[0].id;
-        }
-    } catch(e) {}
-    
     try {
       const res = await fetch('/api/operations/maintenance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           assetId: formData.assetId,
-          userId: mockUserId, // To replace
           issue: formData.issue,
           priority: formData.priority,
           photoUrl: formData.photoUrl
@@ -81,11 +70,10 @@ export default function MaintenancePage() {
 
   const handleStatusChange = async (id: string, newStatus: string) => {
     try {
-        let mockManagerId = 'admin-id';
         const res = await fetch(`/api/operations/maintenance/${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: newStatus, managerId: mockManagerId })
+            body: JSON.stringify({ status: newStatus })
         });
         
         if(res.ok) {

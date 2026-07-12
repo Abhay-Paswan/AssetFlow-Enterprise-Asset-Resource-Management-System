@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { logActivity } from '@/lib/logger';
+import { logActivity } from '@/lib/activity';
+import { getSession } from '@/core/auth/jwt';
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (session.role !== 'Admin' && session.role !== 'Asset Manager') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   const { id } = await context.params;
   try {
     const cycle = await prisma.auditCycle.findUnique({
@@ -28,7 +35,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         where: { id: item.assetId },
         data: { status: 'Lost' },
       });
-      await logActivity(null, 'Asset Marked Lost via Audit', 'Asset', item.assetId, `Asset lost in Audit Cycle ${cycle.name}`);
+      await logActivity(session.userId, 'Asset Marked Lost via Audit', 'Asset', item.assetId, `Asset lost in Audit Cycle ${cycle.name}`);
     }
 
     for (const item of damagedItems) {
@@ -39,7 +46,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         where: { id: item.assetId },
         data: { status: 'Under Maintenance' },
       });
-      await logActivity(null, 'Asset Marked Damaged via Audit', 'Asset', item.assetId, `Asset damaged in Audit Cycle ${cycle.name}`);
+      await logActivity(session.userId, 'Asset Marked Damaged via Audit', 'Asset', item.assetId, `Asset damaged in Audit Cycle ${cycle.name}`);
     }
 
     const discrepancyReport = {

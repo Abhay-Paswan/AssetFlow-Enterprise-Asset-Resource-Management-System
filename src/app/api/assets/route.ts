@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSession } from '@/core/auth/jwt';
 
 export async function GET(request: Request) {
   try {
@@ -39,10 +40,28 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const session = await getSession();
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (session.role !== 'Admin' && session.role !== 'Asset Manager') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const body = await request.json();
     
     // Generate simple tag randomly if not provided
-    const tag = body.tag || `AF-${Math.floor(1000 + Math.random() * 9000)}`;
+    let tag = body.tag || `AF-${Math.floor(1000 + Math.random() * 9000)}`;
+    let isUnique = false;
+    let attempts = 0;
+    while (!isUnique && attempts < 5) {
+      const exists = await prisma.asset.findUnique({ where: { tag } });
+      if (exists) {
+        tag = `AF-${Math.floor(1000 + Math.random() * 9000)}`;
+        attempts++;
+      } else {
+        isUnique = true;
+      }
+    }
+    if (!isUnique) throw new Error("Could not generate a unique asset tag");
 
     const asset = await prisma.asset.create({
       data: {
@@ -56,6 +75,7 @@ export async function POST(request: Request) {
         location: body.location,
         imageUrl: body.imageUrl,
         isSharedResource: body.isSharedResource || false,
+        departmentId: body.departmentId || null,
         status: 'Available',
       }
     });

@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSession } from '@/core/auth/jwt';
 
 export async function POST(request: Request) {
   try {
+    const session = await getSession();
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (session.role !== 'Admin' && session.role !== 'Asset Manager' && session.role !== 'Department Head') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { transferRequestId } = await request.json();
 
     const transfer = await prisma.transferRequest.findUnique({
@@ -66,6 +73,11 @@ export async function POST(request: Request) {
     );
 
     await prisma.$transaction(updates);
+
+    try {
+      const { logActivity } = await import('@/lib/activity');
+      await logActivity(session.userId, 'Transfer Approved', 'Asset', transfer.assetId, `Transfer to ${transfer.toUserId} approved`);
+    } catch(e) {}
 
     return NextResponse.json({ message: 'Transfer Approved', status: 200 }, { status: 200 });
 
