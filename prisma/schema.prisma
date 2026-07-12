@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  password     String
+  name         String
+  role         String      @default("Employee") // Admin, Asset Manager, Department Head, Employee
+  status       String      @default("Active") // Active, Inactive
+  departmentId String?
+  department   Department? @relation("DepartmentMembers", fields: [departmentId], references: [id])
+  headedDept   Department? @relation("DepartmentHead")
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Department {
+  id        String       @id @default(uuid())
+  name      String
+  headId    String?      @unique
+  head      User?        @relation("DepartmentHead", fields: [headId], references: [id])
+  parentId  String?
+  parent    Department?  @relation("DepartmentHierarchy", fields: [parentId], references: [id])
+  children  Department[] @relation("DepartmentHierarchy")
+  status    String       @default("Active") // Active, Inactive
+  members   User[]       @relation("DepartmentMembers")
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model Category {
+  id               String   @id @default(uuid())
+  name             String
+  customAttributes String   // JSON stringified key-value array
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
