@@ -22,6 +22,9 @@ model User {
   headedDept   Department? @relation("DepartmentHead")
   bookings     Booking[]
   maintenanceRequests MaintenanceRequest[]
+  auditedCycles AuditCycle[] @relation("AuditCycleAuditors")
+  activityLogs  ActivityLog[]
+  notifications Notification[]
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 }
@@ -68,6 +71,7 @@ model Asset {
   transferRequests TransferRequest[]
   bookings         Booking[]
   maintenanceRequests MaintenanceRequest[]
+  auditItems          AuditItem[]
   
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
@@ -127,4 +131,57 @@ model MaintenanceRequest {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model AuditCycle {
+  id          String   @id @default(uuid())
+  name        String
+  startDate   DateTime
+  endDate     DateTime
+  status      String   @default("Active") // 'Active' | 'Closed'
+  scopeType   String   // 'Department' | 'Location'
+  scopeValue  String   // e.g., departmentId or location string
+  
+  auditors    User[]   @relation("AuditCycleAuditors")
+  items       AuditItem[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AuditItem {
+  id            String     @id @default(uuid())
+  auditCycleId  String
+  auditCycle    AuditCycle @relation(fields: [auditCycleId], references: [id])
+  assetId       String
+  asset         Asset      @relation(fields: [assetId], references: [id])
+  status        String     @default("Pending") // 'Pending' | 'Verified' | 'Missing' | 'Damaged'
+  notes         String?
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model ActivityLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  action      String
+  entityType  String
+  entityId    String
+  message     String
+  
+  createdAt   DateTime @default(now())
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  message     String
+  type        String   // 'Alert' | 'Info' | 'Warning' | 'Success'
+  isRead      Boolean  @default(false)
+  link        String?
+  
+  createdAt   DateTime @default(now())
 }
