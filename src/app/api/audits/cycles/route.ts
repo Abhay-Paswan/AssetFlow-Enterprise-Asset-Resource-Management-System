@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     }
 
     // Identify assets in scope
-    let assetsInScope = [];
+    let assetsInScope: any[] = [];
     if (scopeType === 'Location') {
       assetsInScope = await prisma.asset.findMany({ where: { location: scopeValue, status: { notIn: ['Retired', 'Disposed'] } } });
     } else if (scopeType === 'Department') {

@@ -33,8 +33,28 @@ export async function Navigation() {
                 Organization Setup
               </Link>
             )}
-            
-            {/* Other roles navigation items will go here */}
+            <Link href="/assets" className="text-slate-300 hover:bg-slate-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+              <PackageOpen className="text-slate-400 group-hover:text-slate-300 mr-3 flex-shrink-0 h-6 w-6" />
+              Assets Directory
+            </Link>
+            <Link href="/operations/bookings" className="text-slate-300 hover:bg-slate-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+              <Users className="text-slate-400 group-hover:text-slate-300 mr-3 flex-shrink-0 h-6 w-6" />
+              Resource Bookings
+            </Link>
+            <Link href="/operations/maintenance" className="text-slate-300 hover:bg-slate-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+              <Settings className="text-slate-400 group-hover:text-slate-300 mr-3 flex-shrink-0 h-6 w-6" />
+              Maintenance
+            </Link>
+            {(session.role === 'Admin' || session.role === 'Asset Manager') && (
+              <Link href="/audits" className="text-slate-300 hover:bg-slate-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <LayoutDashboard className="text-slate-400 group-hover:text-slate-300 mr-3 flex-shrink-0 h-6 w-6" />
+                Audits
+              </Link>
+            )}
+            <Link href="/activity" className="text-slate-300 hover:bg-slate-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+              <LayoutDashboard className="text-slate-400 group-hover:text-slate-300 mr-3 flex-shrink-0 h-6 w-6" />
+              Activity Logs
+            </Link>
           </nav>
         </div>
         <div className="flex-shrink-0 flex bg-slate-800 p-4">

@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { Calendar, Clock, Plus, X } from 'lucide-react';
 
 export default function BookingsPage() {
-  const [assets, setAssets] = useState([]);
-  const [bookings, setBookings] = useState([]);
+  const [assets, setAssets] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState('');
   

@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { Plus, X, Wrench, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 
 export default function MaintenancePage() {
-  const [assets, setAssets] = useState([]);
-  const [requests, setRequests] = useState([]);
+  const [assets, setAssets] = useState<any[]>([]);
+  const [requests, setRequests] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState('');
   

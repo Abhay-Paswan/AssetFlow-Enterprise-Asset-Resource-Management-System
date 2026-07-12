@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function PUT(request: Request, context: { params: { itemId: string } }) {
+export async function PUT(request: Request, context: { params: Promise<{ itemId: string }> }) {
   const { itemId } = await context.params;
   try {
     const body = await request.json();
