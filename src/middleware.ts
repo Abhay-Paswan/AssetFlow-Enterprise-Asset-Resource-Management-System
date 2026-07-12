@@ -12,6 +12,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Allow public access to the root welcome page
+  if (request.nextUrl.pathname === '/') {
+    return NextResponse.next();
+  }
+
   if (!session && !request.nextUrl.pathname.startsWith('/api/auth')) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
