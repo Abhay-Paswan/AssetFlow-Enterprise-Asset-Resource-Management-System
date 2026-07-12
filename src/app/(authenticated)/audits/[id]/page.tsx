@@ -39,6 +39,8 @@ export default function AuditChecklistPage({ params }: { params: Promise<{ id: s
     }
   };
 
+  const [discrepancyReport, setDiscrepancyReport] = useState<any>(null);
+
   const handleCloseCycle = async () => {
     if (!confirm('Are you sure you want to close this audit cycle? This will mutate asset statuses for missing/damaged items.')) return;
     setClosing(true);
@@ -46,8 +48,8 @@ export default function AuditChecklistPage({ params }: { params: Promise<{ id: s
       const res = await fetch(`/api/audits/cycles/${id}/close`, { method: 'POST' });
       const data = await res.json();
       if (res.ok) {
-        alert(data.message);
-        router.push('/audits');
+        setDiscrepancyReport(data);
+        fetchCycle();
       } else {
         alert('Error: ' + data.error);
       }
@@ -128,6 +130,33 @@ export default function AuditChecklistPage({ params }: { params: Promise<{ id: s
           )}
         </ul>
       </div>
+
+      {discrepancyReport && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 border-t-4 border-indigo-600">
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">Audit Cycle Closed</h2>
+            <p className="text-slate-600 mb-6">Discrepancy Report Generated</p>
+            
+            <div className="space-y-4 mb-6">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex justify-between items-center">
+                <span className="font-medium text-red-800">Missing Assets (Lost)</span>
+                <span className="text-xl font-bold text-red-600">{discrepancyReport.missing}</span>
+              </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex justify-between items-center">
+                <span className="font-medium text-amber-800">Damaged Assets (Maint.)</span>
+                <span className="text-xl font-bold text-amber-600">{discrepancyReport.damaged}</span>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => router.push('/audits')}
+              className="w-full bg-indigo-600 text-white font-medium rounded-lg p-3 hover:bg-indigo-700"
+            >
+              Back to Audits List
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

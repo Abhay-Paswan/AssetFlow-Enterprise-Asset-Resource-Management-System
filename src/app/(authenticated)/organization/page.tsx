@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Building2, Tags, Users } from 'lucide-react';
+import { Building2, Tags, Users, X } from 'lucide-react';
 
 export default function OrganizationPage() {
   const [activeTab, setActiveTab] = useState('departments');
@@ -9,14 +9,77 @@ export default function OrganizationPage() {
   const [categories, setCategories] = useState([]);
   const [users, setUsers] = useState([]);
 
-  useEffect(() => {
+  // Modals state
+  const [showDeptModal, setShowDeptModal] = useState(false);
+  const [showCatModal, setShowCatModal] = useState(false);
+  const [showPromoteModal, setShowPromoteModal] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState('');
+  
+  // Forms state
+  const [deptName, setDeptName] = useState('');
+  const [catName, setCatName] = useState('');
+  const [catAttrs, setCatAttrs] = useState('');
+  const [promoteRole, setPromoteRole] = useState('Employee');
+
+  const fetchData = () => {
     fetch('/api/organization/departments').then(res => res.json()).then(setDepartments);
     fetch('/api/organization/categories').then(res => res.json()).then(setCategories);
     fetch('/api/organization/users').then(res => res.json()).then(setUsers);
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
+  const handleCreateDept = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const res = await fetch('/api/organization/departments/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: deptName })
+    });
+    if (res.ok) {
+      setDeptName('');
+      setShowDeptModal(false);
+      fetchData();
+    }
+  };
+
+  const handleCreateCat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const res = await fetch('/api/organization/categories/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: catName, customAttributes: catAttrs })
+    });
+    if (res.ok) {
+      setCatName('');
+      setCatAttrs('');
+      setShowCatModal(false);
+      fetchData();
+    }
+  };
+
+  const handlePromote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const res = await fetch('/api/organization/users/promote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: selectedUserId, role: promoteRole })
+    });
+    if (res.ok) {
+      setShowPromoteModal(false);
+      fetchData();
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto p-8">
+      <div>
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">Organization Setup</h1>
+        <p className="text-slate-500">Manage departments, asset categories, and employee directory.</p>
+      </div>
+
       <div className="border-b border-slate-200">
         <nav className="-mb-px flex space-x-8">
           <button
@@ -48,7 +111,9 @@ export default function OrganizationPage() {
           <div className="bg-white shadow sm:rounded-lg">
             <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
               <h3 className="text-lg leading-6 font-medium text-slate-900">Departments</h3>
-              <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+              <button 
+                onClick={() => setShowDeptModal(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
                 Add Department
               </button>
             </div>
@@ -61,7 +126,7 @@ export default function OrganizationPage() {
                       <p className="text-sm text-slate-500">Head: {dept.head?.name || 'Unassigned'}</p>
                     </div>
                     <div className="ml-2 flex-shrink-0 flex">
-                      <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-100 text-emerald-800">
                         {dept.status}
                       </p>
                     </div>
@@ -79,7 +144,9 @@ export default function OrganizationPage() {
           <div className="bg-white shadow sm:rounded-lg">
             <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
               <h3 className="text-lg leading-6 font-medium text-slate-900">Asset Categories</h3>
-              <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+              <button 
+                onClick={() => setShowCatModal(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
                 Add Category
               </button>
             </div>
@@ -133,12 +200,17 @@ export default function OrganizationPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.status === 'Active' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
                           {user.status}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button className="text-indigo-600 hover:text-indigo-900">Promote Role</button>
+                        <button 
+                          onClick={() => { setSelectedUserId(user.id); setPromoteRole(user.role); setShowPromoteModal(true); }}
+                          className="text-indigo-600 hover:text-indigo-900"
+                        >
+                          Promote Role
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -153,6 +225,70 @@ export default function OrganizationPage() {
           </div>
         )}
       </div>
+
+      {/* Modals */}
+      {showDeptModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Add Department</h2>
+              <button onClick={() => setShowDeptModal(false)}><X className="text-slate-400" /></button>
+            </div>
+            <form onSubmit={handleCreateDept} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Department Name</label>
+                <input required type="text" className="mt-1 w-full border border-slate-300 rounded-lg p-2" value={deptName} onChange={e => setDeptName(e.target.value)} />
+              </div>
+              <button type="submit" className="w-full bg-indigo-600 text-white rounded-lg p-2 mt-4 hover:bg-indigo-700">Create</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showCatModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Add Asset Category</h2>
+              <button onClick={() => setShowCatModal(false)}><X className="text-slate-400" /></button>
+            </div>
+            <form onSubmit={handleCreateCat} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Category Name</label>
+                <input required type="text" className="mt-1 w-full border border-slate-300 rounded-lg p-2" value={catName} onChange={e => setCatName(e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Custom Attributes (JSON Array)</label>
+                <input type="text" placeholder='["Color", "Size"]' className="mt-1 w-full border border-slate-300 rounded-lg p-2" value={catAttrs} onChange={e => setCatAttrs(e.target.value)} />
+              </div>
+              <button type="submit" className="w-full bg-indigo-600 text-white rounded-lg p-2 mt-4 hover:bg-indigo-700">Create</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showPromoteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Promote Employee Role</h2>
+              <button onClick={() => setShowPromoteModal(false)}><X className="text-slate-400" /></button>
+            </div>
+            <form onSubmit={handlePromote} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Select Role</label>
+                <select className="mt-1 w-full border border-slate-300 rounded-lg p-2" value={promoteRole} onChange={e => setPromoteRole(e.target.value)}>
+                  <option value="Employee">Employee</option>
+                  <option value="Department Head">Department Head</option>
+                  <option value="Asset Manager">Asset Manager</option>
+                  <option value="Admin">Admin</option>
+                </select>
+              </div>
+              <button type="submit" className="w-full bg-indigo-600 text-white rounded-lg p-2 mt-4 hover:bg-indigo-700">Update Role</button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
