@@ -7,6 +7,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -19,6 +20,8 @@ model User {
   departmentId String?
   department   Department? @relation("DepartmentMembers", fields: [departmentId], references: [id])
   headedDept   Department? @relation("DepartmentHead")
+  bookings     Booking[]
+  maintenanceRequests MaintenanceRequest[]
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 }
@@ -63,6 +66,8 @@ model Asset {
   
   allocations      Allocation[]
   transferRequests TransferRequest[]
+  bookings         Booking[]
+  maintenanceRequests MaintenanceRequest[]
   
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
@@ -92,4 +97,34 @@ model TransferRequest {
   
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+}
+
+model Booking {
+  id         String   @id @default(uuid())
+  assetId    String
+  asset      Asset    @relation(fields: [assetId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  startTime  DateTime
+  endTime    DateTime
+  purpose    String
+  status     String   @default("Upcoming") // 'Upcoming' | 'Ongoing' | 'Completed' | 'Cancelled'
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model MaintenanceRequest {
+  id          String   @id @default(uuid())
+  assetId     String
+  asset       Asset    @relation(fields: [assetId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  issue       String
+  priority    String   // 'Low' | 'Medium' | 'High'
+  photoUrl    String?
+  status      String   @default("Pending") // 'Pending' | 'Approved' | 'Rejected' | 'Technician Assigned' | 'In Progress' | 'Resolved'
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
