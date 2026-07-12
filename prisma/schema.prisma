@@ -41,6 +41,55 @@ model Category {
   id               String   @id @default(uuid())
   name             String
   customAttributes String   // JSON stringified key-value array
+  assets           Asset[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+model Asset {
+  id               String       @id @default(uuid())
+  name             String
+  tag              String       @unique // auto-generated Asset Tag AF-XXXX
+  categoryId       String
+  category         Category     @relation(fields: [categoryId], references: [id])
+  serialNumber     String?
+  acquisitionDate  DateTime?
+  acquisitionCost  Float?
+  condition        String       // 'New' | 'Good' | 'Fair' | 'Poor'
+  location         String?
+  imageUrl         String?
+  isSharedResource Boolean      @default(false)
+  status           String       @default("Available") // 'Available' | 'Allocated' | 'Reserved' | 'Under Maintenance' | 'Lost' | 'Retired' | 'Disposed'
+  
+  allocations      Allocation[]
+  transferRequests TransferRequest[]
+  
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+}
+
+model Allocation {
+  id                 String    @id @default(uuid())
+  assetId            String
+  asset              Asset     @relation(fields: [assetId], references: [id])
+  assigneeId         String    // UserId or DepartmentId
+  expectedReturnDate DateTime?
+  returnedDate       DateTime?
+  checkInNotes       String?   // 'Good' | 'Damaged' | 'Needs Repair'
+  status             String    @default("Allocated") // 'Allocated' | 'Returned'
+  
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model TransferRequest {
+  id                 String   @id @default(uuid())
+  assetId            String
+  asset              Asset    @relation(fields: [assetId], references: [id])
+  fromUserId         String?  // user releasing it
+  toUserId           String   // user requesting it
+  status             String   @default("Requested") // 'Requested' | 'Approved' | 'Rejected'
+  
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
