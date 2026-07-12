@@ -3,13 +3,16 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, Box, Plus } from 'lucide-react';
 import AssetForm from './AssetForm';
 import AllocationModal from './AllocationModal';
+import AssetHistoryModal from './AssetHistoryModal';
+import ReturnModal from './ReturnModal';
 
 export default function AssetDirectory() {
   const [assets, setAssets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [allocateAssetId, setAllocateAssetId] = useState<string | null>(null);
-  
+  const [historyAssetId, setHistoryAssetId] = useState<string | null>(null);
+  const [returnAllocationId, setReturnAllocationId] = useState<string | null>(null);
   // Filters
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -126,6 +129,12 @@ export default function AssetDirectory() {
                   <td className="px-6 py-4">{asset.location || '-'}</td>
                   <td className="px-6 py-4">
                     <button 
+                      onClick={() => setHistoryAssetId(asset.id)}
+                      className="text-slate-600 hover:text-slate-900 font-medium text-sm transition-colors mr-3"
+                    >
+                      History
+                    </button>
+                    <button 
                       onClick={() => setAllocateAssetId(asset.id)}
                       className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors mr-3"
                     >
@@ -133,15 +142,10 @@ export default function AssetDirectory() {
                     </button>
                     {asset.status === 'Allocated' && (
                         <button 
-                          onClick={async () => {
-                             // quick return for testing purposes
+                          onClick={() => {
                              const aid = asset.allocations[0]?.id;
                              if(aid) {
-                               await fetch('/api/allocations/return', {
-                                 method:'POST',
-                                 body: JSON.stringify({ allocationId: aid })
-                               });
-                               fetchAssets();
+                               setReturnAllocationId(aid);
                              }
                           }}
                           className="text-amber-600 hover:text-amber-800 font-medium text-sm transition-colors"
@@ -161,6 +165,19 @@ export default function AssetDirectory() {
         <AllocationModal 
           assetId={allocateAssetId} 
           onClose={() => setAllocateAssetId(null)} 
+          onSuccess={fetchAssets} 
+        />
+      )}
+      {historyAssetId && (
+        <AssetHistoryModal 
+          assetId={historyAssetId} 
+          onClose={() => setHistoryAssetId(null)} 
+        />
+      )}
+      {returnAllocationId && (
+        <ReturnModal 
+          allocationId={returnAllocationId} 
+          onClose={() => setReturnAllocationId(null)} 
           onSuccess={fetchAssets} 
         />
       )}

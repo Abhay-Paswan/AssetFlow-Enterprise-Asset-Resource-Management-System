@@ -15,6 +15,14 @@ export default function AssetForm({ onCreated }: { onCreated: () => void }) {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [categories, setCategories] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    fetch('/api/organization/categories')
+      .then(res => res.json())
+      .then(data => setCategories(data))
+      .catch(err => console.error('Failed to load categories', err));
+  }, []);
 
   const handleChange = (e: any) => {
     const { name, value, type, checked } = e.target;
@@ -60,8 +68,13 @@ export default function AssetForm({ onCreated }: { onCreated: () => void }) {
           <input required type="text" name="name" value={formData.name} onChange={handleChange} className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700">Category ID</label>
-          <input required type="text" name="categoryId" value={formData.categoryId} onChange={handleChange} placeholder="e.g. UUID of 'Electronics'" className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none" />
+          <label className="block text-sm font-medium text-slate-700">Category</label>
+          <select required name="categoryId" value={formData.categoryId} onChange={handleChange} className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500 outline-none bg-white">
+            <option value="">Select a Category</option>
+            {categories.map((c: any) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700">Serial Number</label>

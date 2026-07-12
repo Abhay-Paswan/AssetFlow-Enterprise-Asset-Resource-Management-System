@@ -28,10 +28,10 @@ export default function DashboardPage() {
           <Link href="/assets" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center gap-2">
             <Box className="w-4 h-4" /> Register Asset
           </Link>
-          <Link href="/operations" className="px-4 py-2 bg-slate-800 text-white rounded-md hover:bg-slate-900 flex items-center gap-2">
+          <Link href="/operations/bookings" className="px-4 py-2 bg-slate-800 text-white rounded-md hover:bg-slate-900 flex items-center gap-2">
             <Calendar className="w-4 h-4" /> Book Resource
           </Link>
-          <Link href="/operations" className="px-4 py-2 border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 flex items-center gap-2">
+          <Link href="/operations/maintenance" className="px-4 py-2 border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 flex items-center gap-2">
             <Wrench className="w-4 h-4" /> Raise Maintenance
           </Link>
         </div>

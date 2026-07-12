@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { PackageOpen, Users, LayoutDashboard, Settings } from 'lucide-react';
+import { PackageOpen, Users, LayoutDashboard, Settings, Bell } from 'lucide-react';
 import { getSession } from '@/core/auth/jwt';
 
 export async function Navigation() {
@@ -64,6 +64,10 @@ export async function Navigation() {
             <Link href="/activity" className="text-slate-300 hover:bg-slate-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
               <LayoutDashboard className="text-slate-400 group-hover:text-slate-300 mr-3 flex-shrink-0 h-6 w-6" />
               Activity Logs
+            </Link>
+            <Link href="/notifications" className="text-slate-300 hover:bg-slate-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+              <Bell className="text-slate-400 group-hover:text-slate-300 mr-3 flex-shrink-0 h-6 w-6" />
+              Notifications
             </Link>
           </nav>
         </div>

@@ -37,6 +37,27 @@ export default function BookingsPage() {
           if(Array.isArray(data)) setBookings(data);
       })
       .catch(console.error);
+      .catch(console.error);
+  };
+
+  const handleCancel = async (id: string) => {
+    if (!confirm('Are you sure you want to cancel this booking?')) return;
+    try {
+      const res = await fetch(`/api/operations/bookings/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'Cancelled' })
+      });
+      if (res.ok) {
+        fetchBookings();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to cancel booking');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An unexpected error occurred');
+    }
   };
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
@@ -135,6 +156,14 @@ export default function BookingsPage() {
                   }`}>
                     {booking.status}
                   </span>
+                  {booking.status === 'Upcoming' && (
+                    <button
+                      onClick={() => handleCancel(booking.id)}
+                      className="ml-4 text-xs font-medium text-red-600 hover:text-red-800 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  )}
                 </td>
               </tr>
             )) : (
