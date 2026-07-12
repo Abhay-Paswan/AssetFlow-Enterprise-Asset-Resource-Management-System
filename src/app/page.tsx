@@ -95,12 +95,10 @@ export default function Home() {
             transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
             className="relative w-full aspect-[16/10] rounded-3xl overflow-hidden border border-slate-200/50 shadow-2xl shadow-indigo-900/10"
           >
-            <Image 
+            <img 
               src="/hero-mockup.png" 
               alt="AssetFlow Dashboard Mockup" 
-              fill
-              className="object-cover"
-              priority
+              className="w-full h-full object-cover"
             />
           </motion.div>
         </motion.div>
