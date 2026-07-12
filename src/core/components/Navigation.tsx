@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { PackageOpen, Users, LayoutDashboard, Settings, Bell } from 'lucide-react';
 import { getSession } from '@/core/auth/jwt';
-
+import { LogoutButton } from '@/core/components/LogoutButton';
 export async function Navigation() {
   const session = await getSession();
   
@@ -83,6 +83,7 @@ export async function Navigation() {
                   {session.role}
                 </p>
               </div>
+              <LogoutButton />
             </div>
           </div>
         </div>

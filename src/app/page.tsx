@@ -96,7 +96,7 @@ export default function Home() {
             className="relative w-full aspect-[16/10] rounded-3xl overflow-hidden border border-slate-200/50 shadow-2xl shadow-indigo-900/10"
           >
             <img 
-              src="/hero-mockup.png" 
+              src="/hero-isometric.png" 
               alt="AssetFlow Dashboard Mockup" 
               className="w-full h-full object-cover"
             />
